@@ -3,6 +3,8 @@
  * The adapter needs to be deployed as AWS Lambda function and Alexa skill configured to use it.
  */
 var AWS = require("aws-sdk")
+var iotdata = new AWS.IotData({endpoint: 'https://a3a3dfq53g738j.iot.us-east-1.amazonaws.com'})
+var IOT_TOPIC = 'rf-control'
 
 var devices = [
   {
@@ -36,27 +38,24 @@ var devices = [
  * Incoming events from Alexa Lighting APIs are processed via this method.
  */
 exports.handler = function(event, context) {
-
-  log('Input', event)
+  console.log('Input', event)
 
   switch (event.header.namespace) {
-
     case 'Alexa.ConnectedHome.Discovery':
       handleDiscovery(event, context)
       break;
-
     case 'Alexa.ConnectedHome.Control':
       handleControl(event, context)
       break;
-
     default:
-      log('Err', 'No supported namespace: ' + event.header.namespace)
-      context.fail('Something went wrong')
+      console.log('Err', 'No supported namespace: ' + event.header.namespace)
+      context.fail('No supported namespace: ' + event.header.namespace)
       break;
   }
 }
 
-function handleDiscovery(accessToken, context) {
+
+function handleDiscovery(event, context) {
   var discoveryResponse = {
     "header": {
       "messageId": uuid(),
@@ -69,7 +68,7 @@ function handleDiscovery(accessToken, context) {
     }
   }
 
-  log('Discovery', discoveryResponse)
+  console.log('Discovery', discoveryResponse)
   context.succeed(discoveryResponse)
 
   function createApplianceJson(applianceId, applianceName) {
@@ -89,51 +88,55 @@ function handleDiscovery(accessToken, context) {
   }
 }
 
-/**
- * Control events are processed here.
- * This is called when Alexa requests an action (IE turn off appliance).
- */
+
 function handleControl(event, context) {
-  var iotdata = new AWS.IotData({endpoint: 'https://a3a3dfq53g738j.iot.us-east-1.amazonaws.com'})
-  var params = {
-    topic: 'topic_1',
-    payload: 'Test data from Lambda!',
-    qos: 0
+  if(event.header.name === 'TurnOnRequest' || event.header.name === 'TurnOffRequest') {
+    iotdata.publish(iotEventFor(event), function(err, data) {
+      if (err) {
+        console.log(err, err.stack)
+        context.fail('Failed to publish IoT event!')
+      } else {
+        context.succeed(confirmationFor(event))
+      }
+    })
+  } else {
+    console.log('Err', 'Unsupported control request:', event.header.name)
+    context.fail('Unsupported control request!')
   }
-  iotdata.publish(params, function(err, data) {
-    if (err) console.log(err, err.stack) // an error occurred
-    else{
-      console.log("message sent")           // successful response
-      var headers = {
-        namespace: 'Control',
-        name: 'SwitchOnOffResponse',
-        payloadVersion: '1'
-      }
-      var payloads = {
-        success: true
-      }
-      var result = {
-        header: headers,
-        payload: payloads
-      }
-      log('Done with result', result)
-      context.succeed(result)
+
+  function iotEventFor(event) {
+    return {
+      topic: IOT_TOPIC,
+      payload: JSON.stringify({
+        event: event.header.name,
+        applianceId: event.payload.appliance.applianceId
+      }),
+      qos: 0
     }
-  })
+  }
+
+  function confirmationFor(event) {
+    return {
+      header: {
+        messageId: uuid(),
+        name: event.header.name === 'TurnOnRequest' ? 'TurnOnConfirmation' : 'TurnOffConfirmation',
+        namespace: "Alexa.ConnectedHome.Control",
+        payloadVersion: "2"
+      },
+      payload: {}
+    }
+  }
 }
 
 /**
  * Utility functions.
  */
-function log(title, msg) {
-  console.log('*************** ' + title + ' *************')
-  console.log(msg)
-  console.log('*************** ' + title + ' End*************')
-}
-
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8)
     return v.toString(16)
   })
 }
+
+module.exports.IOT_TOPIC = IOT_TOPIC
+module.exports.devices = devices
