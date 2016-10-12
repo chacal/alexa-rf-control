@@ -170,3 +170,4 @@ function uuid() {
 
 module.exports.IOT_TOPIC = IOT_TOPIC
 module.exports.devices = devices
+module.exports.uuid = uuid

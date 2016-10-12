@@ -8,7 +8,7 @@ var device = awsIot.device({
   keyPath: './iot-us-east-1-private.pem.key',
   certPath: './iot-us-east-1-certificate.pem.crt',
   caPath: './ca.pem',
-  clientId: 'test-client',
+  clientId: lambda.uuid(),
   region: 'us-east-1'
 })
 
