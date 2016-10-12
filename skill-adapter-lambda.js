@@ -9,27 +9,57 @@ var IOT_TOPIC = 'rf-control'
 var devices = [
   {
     applianceId: 'upper-livingroom',
-    name: 'Upper Livingroom Light'
+    name: 'Olohuone ylempi',
+    rfConfig: {
+      family: 'a',
+      group: 1,
+      device: 1
+    }
   },
   {
     applianceId: 'lower-livingroom',
-    name: 'Lower Livingroom Light'
+    name: 'Olohuone alempi',
+    rfConfig: {
+      family: 'a',
+      group: 1,
+      device: 2
+    }
   },
   {
     applianceId: 'livingroom-table',
-    name: 'Livingroom Table Lights'
+    name: 'Olohuone pöytä',
+    rfConfig: {
+      family: 'a',
+      group: 1,
+      device: 3
+    }
   },
   {
     applianceId: 'bar-table',
-    name: 'Bar Table Light'
+    name: 'Työtaso vasen',
+    rfConfig: {
+      family: 'b',
+      group: 1,
+      device: 2
+    }
   },
   {
     applianceId: 'worktop',
-    name: 'Worktop Light'
+    name: 'Työtaso oikea',
+    rfConfig: {
+      family: 'b',
+      group: 1,
+      device: 3
+    }
   },
   {
     applianceId: 'kitchen',
-    name: 'Kitchen Light'
+    name: 'Keittiö',
+    rfConfig: {
+      family: 'b',
+      group: 1,
+      device: 1
+    }
   }
 ]
 
@@ -78,7 +108,7 @@ function handleDiscovery(event, context) {
         "turnOff"
       ],
       "applianceId": applianceId,
-      "friendlyDescription": applianceName,
+      "friendlyDescription": 'Description',
       "friendlyName": applianceName,
       "isReachable": true,
       "manufacturerName": "Intertechno",
