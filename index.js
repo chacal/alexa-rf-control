@@ -23,13 +23,30 @@ device
     var payloadJson = JSON.parse(payload.toString())
     console.log('message', topic, payloadJson)
 
-    if(payloadJson.event === 'TurnOnRequest' || payloadJson.event === 'TurnOffRequest') {
-      var rfConfig = lambda.devices.find(d => d.applianceId === payloadJson.applianceId).rfConfig
+    switch (payloadJson.event) {
+      case 'TurnOnRequest':
+        switchOn(applianceById(payloadJson.applianceId))
+        break;
+      case 'TurnOffRequest':
+        switchOff(applianceById(payloadJson.applianceId))
+        break;
+      default:
+        console.log('Unsupported event:', payloadJson.event)
+    }
 
-      if(payloadJson.event === 'TurnOnRequest') {
-        rcswitch.switchOn(rfConfig.family, rfConfig.group, rfConfig.device)
+
+    function switchOn(appliance) { switchOnOrOff(appliance, true)}
+    function switchOff(appliance) { switchOnOrOff(appliance, false)}
+    function switchOnOrOff(appliance, switchOn) {
+      var rfConfig = appliance.rfConfig
+      if(appliance && rfConfig) {
+        if(switchOn)
+          rcswitch.switchOn(rfConfig.family, rfConfig.group, rfConfig.device)
+        else
+          rcswitch.switchOff(rfConfig.family, rfConfig.group, rfConfig.device)
       } else {
-        rcswitch.switchOff(rfConfig.family, rfConfig.group, rfConfig.device)
+        console.log('No rfConfig for appliance!', appliance)
       }
     }
+    function applianceById(applianceId) { return lambda.devices.find(d => d.applianceId === applianceId) }
   })
