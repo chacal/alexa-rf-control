@@ -60,6 +60,15 @@ var devices = [
       group: 1,
       device: 1
     }
+  },
+  {
+    applianceId: 'bedroom',
+    name: 'Makuuhuone',
+    rfConfig: {
+      family: 'b',
+      group: 1,
+      device: 4
+    }
   }
 ]
 
