@@ -69,6 +69,15 @@ var devices = [
       group: 1,
       device: 4
     }
+  },
+  {
+    applianceId: 'childroom',
+    name: 'Lastenhuoneen pöytävalo',
+    rfConfig: {
+      family: 'c',
+      group: 1,
+      device: 1
+    }
   }
 ]
 
