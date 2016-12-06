@@ -78,6 +78,15 @@ var devices = [
       group: 1,
       device: 1
     }
+  },
+  {
+    applianceId: 'christmas',
+    name: 'Olohuoneen jouluvalo',
+    rfConfig: {
+      family: 'c',
+      group: 1,
+      device: 2
+    }
   }
 ]
 
