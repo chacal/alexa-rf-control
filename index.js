@@ -1,53 +1,76 @@
 var awsIot = require('aws-iot-device-sdk')
 var lambda = require('./skill-adapter-lambda.js')
+var express = require('express')
 var rcswitch = require('rcswitch-gpiomem')
 
+var HTTP_PORT = 3000
 rcswitch.enableTransmit(17)
 
-var device = awsIot.device({
-  keyPath: './iot-us-east-1-private.pem.key',
-  certPath: './iot-us-east-1-certificate.pem.crt',
-  caPath: './ca.pem',
-  clientId: lambda.uuid(),
-  region: 'us-east-1',
-  keepalive: 60
-})
+startAwsIoTListener()
+startHttpListener()
 
-device
-  .on('connect', function() {
-    console.log('connect')
-    device.subscribe(lambda.IOT_TOPIC)
+
+function startAwsIoTListener() {
+  var device = awsIot.device({
+    keyPath: './iot-us-east-1-private.pem.key',
+    certPath: './iot-us-east-1-certificate.pem.crt',
+    caPath: './ca.pem',
+    clientId: lambda.uuid(),
+    region: 'us-east-1',
+    keepalive: 60
   })
 
-device
-  .on('message', function(topic, payload) {
-    var payloadJson = JSON.parse(payload.toString())
-    console.log('message', topic, payloadJson)
+  device
+    .on('connect', function() {
+      console.log('Connected to AWS IoT')
+      device.subscribe(lambda.IOT_TOPIC)
+    })
 
-    switch (payloadJson.event) {
-      case 'TurnOnRequest':
-        switchOn(applianceById(payloadJson.applianceId))
-        break;
-      case 'TurnOffRequest':
-        switchOff(applianceById(payloadJson.applianceId))
-        break;
-      default:
-        console.log('Unsupported event:', payloadJson.event)
-    }
+  device
+    .on('message', function(topic, payload) {
+      var payloadJson = JSON.parse(payload.toString())
+      console.log('Message from AWS IoT:', topic, payloadJson)
+      handleEvent(payloadJson)
+    })
+}
 
+function startHttpListener() {
+  var app = express()
 
-    function switchOn(appliance) { switchOnOrOff(appliance, true)}
-    function switchOff(appliance) { switchOnOrOff(appliance, false)}
-    function switchOnOrOff(appliance, switchOn) {
-      var rfConfig = appliance.rfConfig
-      if(appliance && rfConfig) {
-        if(switchOn)
-          rcswitch.switchOn(rfConfig.family, rfConfig.group, rfConfig.device)
-        else
-          rcswitch.switchOff(rfConfig.family, rfConfig.group, rfConfig.device)
-      } else {
-        console.log('No rfConfig for appliance!', appliance)
-      }
-    }
-    function applianceById(applianceId) { return lambda.devices.find(d => d.applianceId === applianceId) }
+  app.post('/switch/:applianceId/:state', function (req, res) {
+    var event = { applianceId: req.params.applianceId, event: req.params.state === 'on' ? 'TurnOnRequest' : 'TurnOffRequest' }
+    handleEvent(event)
+    res.end()
   })
+
+  app.listen(HTTP_PORT, () => console.log('Listening for HTTP on port ' + HTTP_PORT))
+}
+
+
+function handleEvent(event) {
+  switch (event.event) {
+    case 'TurnOnRequest':
+      switchOn(applianceById(event.applianceId))
+      break;
+    case 'TurnOffRequest':
+      switchOff(applianceById(event.applianceId))
+      break;
+    default:
+      console.log('Unsupported event:', event.event)
+  }
+
+  function switchOn(appliance) { switchOnOrOff(appliance, true)}
+  function switchOff(appliance) { switchOnOrOff(appliance, false)}
+  function switchOnOrOff(appliance, switchOn) {
+    var rfConfig = appliance.rfConfig
+    if(appliance && rfConfig) {
+      if(switchOn)
+        rcswitch.switchOn(rfConfig.family, rfConfig.group, rfConfig.device)
+      else
+        rcswitch.switchOff(rfConfig.family, rfConfig.group, rfConfig.device)
+    } else {
+      console.log('No rfConfig for appliance!', appliance)
+    }
+  }
+  function applianceById(applianceId) { return lambda.devices.find(d => d.applianceId === applianceId) }
+}
