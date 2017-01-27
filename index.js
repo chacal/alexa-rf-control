@@ -36,9 +36,12 @@ function startAwsIoTListener() {
 
 function startHttpListener() {
   var app = express()
+  var bodyParser = require('body-parser')
 
-  app.post('/switch/:applianceId/:state', function (req, res) {
-    var event = { applianceId: req.params.applianceId, event: req.params.state === 'on' ? 'TurnOnRequest' : 'TurnOffRequest' }
+  app.get('/switch/:applianceId', (req, res) => res.end())
+
+  app.post('/switch/:applianceId', bodyParser.text({type: '*/*'}), function (req, res) {
+    var event = { applianceId: req.params.applianceId, event: req.body.toLowerCase() === 'on' ? 'TurnOnRequest' : 'TurnOffRequest' }
     handleEvent(event)
     res.end()
   })
