@@ -54,7 +54,17 @@ function startHttpListener() {
 
 function startMqttClient(brokerUrl) {
   const client = mqtt.connect(brokerUrl)
-  client.on('connect', () => console.log("Connected to MQTT server"))
+
+  client.on('connect', () => {
+    console.log("Connected to MQTT server")
+    client.subscribe('/switch/intertechno/+/+/+/command')
+  })
+
+  client.on('message', (topic, message) => {
+    const [, , , family, group, device] = topic.split('/')
+    switchDevice(family, group, device, message.toString().toLowerCase() === 'on')
+  })
+
   return client
 }
 
@@ -76,14 +86,18 @@ function handleEvent(event) {
   function switchOnOrOff(appliance, switchOn) {
     const rfConfig = appliance.rfConfig
     if(appliance && rfConfig) {
-      if(switchOn)
-        rcswitch.switchOn(rfConfig.family, rfConfig.group, rfConfig.device)
-      else
-        rcswitch.switchOff(rfConfig.family, rfConfig.group, rfConfig.device)
-      mqttClient.publish(`/switch/intertechno/${rfConfig.family}/${rfConfig.group}/${rfConfig.device}/state`, switchOn ? 'ON' : 'OFF', { retain: true, qos: 1 })
+      switchDevice(rfConfig.family, rfConfig.group, rfConfig.device, switchOn)
     } else {
       console.log('No rfConfig for appliance!', appliance)
     }
   }
   function applianceById(applianceId) { return lambda.devices.find(d => d.applianceId === applianceId) }
+}
+
+function switchDevice(family, group, device, switchOn) {
+  if(switchOn)
+    rcswitch.switchOn(family, group, device)
+  else
+    rcswitch.switchOff(family, group, device)
+  mqttClient.publish(`/switch/intertechno/${family}/${group}/${device}/state`, switchOn ? 'ON' : 'OFF', { retain: true, qos: 1})
 }
