@@ -96,8 +96,8 @@ function handleEvent(event) {
 
 function switchDevice(family, group, device, switchOn) {
   if(switchOn)
-    rcswitch.switchOn(family, group, device)
+    rcswitch.switchOn(family, parseInt(group), parseInt(device))
   else
-    rcswitch.switchOff(family, group, device)
+    rcswitch.switchOff(family, parseInt(group), parseInt(device))
   mqttClient.publish(`/switch/intertechno/${family}/${group}/${device}/state`, switchOn ? 'ON' : 'OFF', { retain: true, qos: 1})
 }
