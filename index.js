@@ -1,15 +1,12 @@
 const awsIot = require('aws-iot-device-sdk')
 const lambda = require('./skill-adapter-lambda.js')
-const express = require('express')
 const rcswitch = require('rcswitch-gpiomem')
 const mqtt = require('mqtt')
 
-const HTTP_PORT = 3000
 const MQTT_BROKER = 'mqtt://ha-opi'
 rcswitch.enableTransmit(17)
 
 startAwsIoTListener()
-startHttpListener()
 const mqttClient = startMqttClient(MQTT_BROKER)
 
 
@@ -35,21 +32,6 @@ function startAwsIoTListener() {
       console.log('Message from AWS IoT:', topic, payloadJson)
       handleEvent(payloadJson)
     })
-}
-
-function startHttpListener() {
-  const app = express()
-  const bodyParser = require('body-parser')
-
-  app.get('/switch/:applianceId', (req, res) => res.end())
-
-  app.post('/switch/:applianceId', bodyParser.text({type: '*/*'}), function (req, res) {
-    const event = { applianceId: req.params.applianceId, event: req.body.toLowerCase() === 'on' ? 'TurnOnRequest' : 'TurnOffRequest' }
-    handleEvent(event)
-    res.end()
-  })
-
-  app.listen(HTTP_PORT, () => console.log('Listening for HTTP on port ' + HTTP_PORT))
 }
 
 function startMqttClient(brokerUrl) {
