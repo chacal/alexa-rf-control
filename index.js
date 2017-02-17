@@ -2,12 +2,15 @@ var awsIot = require('aws-iot-device-sdk')
 var lambda = require('./skill-adapter-lambda.js')
 var express = require('express')
 var rcswitch = require('rcswitch-gpiomem')
+var mqtt = require('mqtt')
 
 var HTTP_PORT = 3000
+var MQTT_BROKER = 'mqtt://ha-opi'
 rcswitch.enableTransmit(17)
 
 startAwsIoTListener()
 startHttpListener()
+var mqttClient = startMqttClient(MQTT_BROKER)
 
 
 function startAwsIoTListener() {
@@ -49,6 +52,14 @@ function startHttpListener() {
   app.listen(HTTP_PORT, () => console.log('Listening for HTTP on port ' + HTTP_PORT))
 }
 
+function startMqttClient(brokerUrl) {
+  const client = mqtt.connect(brokerUrl)
+  client.on('connect', function () {
+    console.log("Connected to MQTT server")
+  })
+  return client
+}
+
 
 function handleEvent(event) {
   switch (event.event) {
@@ -71,6 +82,7 @@ function handleEvent(event) {
         rcswitch.switchOn(rfConfig.family, rfConfig.group, rfConfig.device)
       else
         rcswitch.switchOff(rfConfig.family, rfConfig.group, rfConfig.device)
+      mqttClient.publish(`/switch/intertechno/${rfConfig.family}/${rfConfig.group}/${rfConfig.device}/state`, switchOn ? 'ON' : 'OFF', { retain: true, qos: 1 })
     } else {
       console.log('No rfConfig for appliance!', appliance)
     }
