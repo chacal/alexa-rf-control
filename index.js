@@ -61,6 +61,7 @@ function startMqttClient(brokerUrl) {
   })
 
   client.on('message', (topic, message) => {
+    console.log("Message from MQTT:", topic, message.toString())
     const [, , , family, group, device] = topic.split('/')
     switchDevice(family, group, device, message.toString().toLowerCase() === 'on')
   })
@@ -95,6 +96,7 @@ function handleEvent(event) {
 }
 
 function switchDevice(family, group, device, switchOn) {
+  console.log("Switching device:", family, group, device, switchOn)
   if(switchOn)
     rcswitch.switchOn(family, parseInt(group), parseInt(device))
   else
