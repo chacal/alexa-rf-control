@@ -3,7 +3,7 @@ const lambda = require('./skill-adapter-lambda.js')
 const rcswitch = require('rcswitch-gpiomem')
 const mqtt = require('mqtt')
 
-const MQTT_BROKER = 'mqtt://ha-opi'
+const MQTT_BROKER = 'mqtt://mqtt-home.chacal.online'
 rcswitch.enableTransmit(17)
 
 startAwsIoTListener()
