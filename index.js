@@ -35,7 +35,7 @@ function startAwsIoTListener() {
 }
 
 function startMqttClient(brokerUrl) {
-  const client = mqtt.connect(brokerUrl)
+  const client = mqtt.connect(brokerUrl, { queueQoSZero : false })
 
   client.on('connect', () => {
     console.log("Connected to MQTT server")
@@ -83,5 +83,5 @@ function switchDevice(family, group, device, switchOn) {
     rcswitch.switchOn(family, parseInt(group), parseInt(device))
   else
     rcswitch.switchOff(family, parseInt(group), parseInt(device))
-  mqttClient.publish(`/switch/intertechno/${family}/${group}/${device}/state`, switchOn ? 'ON' : 'OFF', { retain: true, qos: 1})
+  mqttClient.publish(`/switch/intertechno/${family}/${group}/${device}/state`, switchOn ? 'ON' : 'OFF', { retain: true })
 }
