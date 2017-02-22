@@ -41,6 +41,8 @@ function startMqttClient(brokerUrl) {
     console.log("Connected to MQTT server")
     client.subscribe('/switch/intertechno/+/+/+/command')
   })
+  client.on('offline', () => console.log('Disconnected from MQTT server'))
+  client.on('error', () => console.log('MQTT client error', e))
 
   client.on('message', (topic, message) => {
     console.log("Message from MQTT:", topic, message.toString())
