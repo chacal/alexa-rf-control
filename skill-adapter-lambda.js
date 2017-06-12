@@ -14,7 +14,9 @@ var devices = [
       family: 'a',
       group: 1,
       device: 1
-    }
+    },
+    rcSwitchValueOn: 21,
+    rcSwitchValueOff: 20
   },
   {
     applianceId: 'lower-livingroom',
@@ -23,7 +25,9 @@ var devices = [
       family: 'a',
       group: 1,
       device: 2
-    }
+    },
+    rcSwitchValueOn: 16405,
+    rcSwitchValueOff: 16404
   },
   {
     applianceId: 'livingroom-table',
@@ -32,7 +36,9 @@ var devices = [
       family: 'a',
       group: 1,
       device: 3
-    }
+    },
+    rcSwitchValueOn: 4117,
+    rcSwitchValueOff: 4116
   },
   {
     applianceId: 'bar-table',
@@ -41,7 +47,9 @@ var devices = [
       family: 'b',
       group: 1,
       device: 2
-    }
+    },
+    rcSwitchValueOn: 4210709,
+    rcSwitchValueOff: 4210708
   },
   {
     applianceId: 'worktop',
@@ -50,7 +58,9 @@ var devices = [
       family: 'b',
       group: 1,
       device: 3
-    }
+    },
+    rcSwitchValueOn: 4198421,
+    rcSwitchValueOff: 4198420
   },
   {
     applianceId: 'kitchen',
@@ -59,7 +69,9 @@ var devices = [
       family: 'b',
       group: 1,
       device: 1
-    }
+    },
+    rcSwitchValueOn: 4194325,
+    rcSwitchValueOff: 4194324
   },
   {
     applianceId: 'bedroom',
@@ -68,7 +80,9 @@ var devices = [
       family: 'b',
       group: 1,
       device: 4
-    }
+    },
+    rcSwitchValueOn: 4214805,
+    rcSwitchValueOff: 4214804
   },
   {
     applianceId: 'childroom',
@@ -77,7 +91,9 @@ var devices = [
       family: 'c',
       group: 1,
       device: 1
-    }
+    },
+    rcSwitchValueOn: 1048597,
+    rcSwitchValueOff: 1048596
   },
   {
     applianceId: 'christmas',
@@ -86,7 +102,9 @@ var devices = [
       family: 'c',
       group: 1,
       device: 2
-    }
+    },
+    rcSwitchValueOn: 1064981,
+    rcSwitchValueOff: 1064980
   }
 ]
 

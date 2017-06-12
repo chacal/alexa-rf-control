@@ -40,17 +40,42 @@ function startMqttClient(brokerUrl) {
   client.on('connect', () => {
     console.log("Connected to MQTT server")
     client.subscribe('/switch/intertechno/+/+/+/command')
+    client.subscribe('/433gw/+/value')
   })
   client.on('offline', () => console.log('Disconnected from MQTT server'))
   client.on('error', () => console.log('MQTT client error', e))
 
   client.on('message', (topic, message) => {
     console.log("Message from MQTT:", topic, message.toString())
-    const [, , , family, group, device] = topic.split('/')
-    switchDevice(family, group, device, message.toString().toLowerCase() === 'on')
+    if(topic.includes('433gw')) {  //ESP 433gw message
+      handle433GwMessage(message)
+    } else {  // Switch message
+      const [, , , family, group, device] = topic.split('/')
+      switchDevice(family, group, device, message.toString().toLowerCase() === 'on')
+    }
+
   })
 
   return client
+}
+
+function handle433GwMessage(message) {
+  try {
+    const json = JSON.parse(message)
+    const deviceByOnValue = lambda.devices.find(d => d.rcSwitchValueOn === json.value)
+    const deviceByOffValue = lambda.devices.find(d => d.rcSwitchValueOff === json.value)
+    if(deviceByOnValue)
+      publishDeviceState(deviceByOnValue, 'ON')
+    else if(deviceByOffValue)
+      publishDeviceState(deviceByOffValue, 'OFF')
+  } catch(e) {
+    console.error('Failed to parse 433gw message. Message:', message.toString())
+  }
+
+  function publishDeviceState(device, newState) {
+    console.log('Pusblishing device state:', JSON.stringify(device), newState)
+    mqttClient.publish(`/switch/intertechno/${device.rfConfig.family}/${device.rfConfig.group}/${device.rfConfig.device}/state`, newState, { retain: true })
+  }
 }
 
 
